@@ -69,33 +69,27 @@ function showNotification() {
 }
 
 window.addEventListener('keydown', e => {
-    if (playable) {
-        if (e.keyCode >= 65 && e.keyCode <= 90) {
-            const letter = e.key.toLowerCase();
-
-            if (selectedWord.includes(letter)) {
-                if (!correctLetters.includes(letter)) {
-                    correctLetters.push(letter);
-
-                    displayWord();
-                } else {
-                    showNotification();
-                }
+    if (e.keyCode >= 65 && e.keyCode <= 90) {
+        const letter = e.key;
+        if (selectedWord.includes(letter)) {
+            if (!correctLetters.includes(letter)) {
+                correctLetters.push(letter);
+                displayWord();
             } else {
-                if (!wrongLetters.includes(letter)) {
-                    wrongLetters.push(letter);
-
-                    updateWrongLettersEl();
-                } else {
-                    showNotification();
-                }
+                showNotification();
+            }
+        } else {
+            if (!wrongLetters.includes(letter)) {
+                wrongLetters.push(letter);
+                updateWrongLettersEl();
+            } else {
+                showNotification();
             }
         }
     }
 });
 
 playAgainBtn.addEventListener('click', () => {
-    playable = true;
     correctLetters.splice(0);
     wrongLetters.splice(0);
 
