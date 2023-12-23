@@ -11,6 +11,8 @@ const words = ['application', 'programming', 'interface', 'wizard'];
 
 let selectedWord = words[Math.floor(Math.random() * words.length)];
 
+let playable = true;
+
 const correctLetters = [];
 const wrongLetters = [];
 
@@ -32,6 +34,8 @@ function displayWord() {
     if (innerWord === selectedWord) {
         finalMessage.innerText = 'Congratulations! You won! 😃';
         popup.style.display = 'flex';
+
+        playable = false;
     }
 }
 
@@ -39,7 +43,7 @@ function displayWord() {
 function updateWrongLettersEl() {
     wrongLettersEl.innerHTML = `
 ${wrongLetters.length > 0 ? '<p>Wrong</p>' : ''}
-${wrongLetters.map(letter => `<span>${letter}</span`)}
+${wrongLetters.map(letter => `<span>${letter},</span`)}
 `;
 
     figureParts.forEach((part, index) => {
@@ -56,6 +60,7 @@ ${wrongLetters.map(letter => `<span>${letter}</span`)}
         finalMessage.innerText = 'Unfortunately you lost. 😕';
         popup.style.display = 'flex';
 
+        playable = false;
     }
 
 }
@@ -69,27 +74,30 @@ function showNotification() {
 }
 
 window.addEventListener('keydown', e => {
-    if (e.keyCode >= 65 && e.keyCode <= 90) {
-        const letter = e.key;
-        if (selectedWord.includes(letter)) {
-            if (!correctLetters.includes(letter)) {
-                correctLetters.push(letter);
-                displayWord();
+    if (playable) {
+        if (e.keyCode >= 65 && e.keyCode <= 90) {
+            const letter = e.key;
+            if (selectedWord.includes(letter)) {
+                if (!correctLetters.includes(letter)) {
+                    correctLetters.push(letter);
+                    displayWord();
+                } else {
+                    showNotification();
+                }
             } else {
-                showNotification();
-            }
-        } else {
-            if (!wrongLetters.includes(letter)) {
-                wrongLetters.push(letter);
-                updateWrongLettersEl();
-            } else {
-                showNotification();
+                if (!wrongLetters.includes(letter)) {
+                    wrongLetters.push(letter);
+                    updateWrongLettersEl();
+                } else {
+                    showNotification();
+                }
             }
         }
     }
 });
 
 playAgainBtn.addEventListener('click', () => {
+    playable = true;
     correctLetters.splice(0);
     wrongLetters.splice(0);
 
