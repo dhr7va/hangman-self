@@ -7,24 +7,57 @@ const finalMessage = document.getElementById('final-message');
 
 const figureParts = document.querySelectorAll('.figure-part');
 
-const words = ['application', 'programming', 'interface', 'wizard'];
-
-let selectedWord = words[Math.floor(Math.random() * words.length)];
-
 let playable = true;
 
 const correctLetters = [];
 const wrongLetters = [];
 
+async function fetchRandomWord() {
+    try {
+        const response = await fetch('https://random-word-api.herokuapp.com/word');
+        const data = await response.json();
+        return data[0];
+    } catch (error) {
+        console.error('Error fetching random word:', error);
+    }
+}
+
+async function initializeGame() {
+    try {
+        const randomWord = await fetchRandomWord();
+        if (randomWord && typeof randomWord === 'string') {
+            return randomWord.toLowerCase();
+        } else {
+            // Use a default word if there's an issue with the API
+            return 'hangman';
+        }
+    } catch (error) {
+        console.error('Error initializing game:', error);
+    }
+}
+
+let selectedWord;
+
+async function startNewGame() {
+    selectedWord = await initializeGame();
+    correctLetters.length = 0;
+    wrongLetters.length = 0;
+    playable = true;
+
+    displayWord();
+    updateWrongLettersEl();
+    popup.style.display = 'none';
+}
+
 function displayWord() {
     wordEl.innerHTML = `
-    ${selectedWord
+        ${selectedWord
             .split('')
             .map(
                 letter => `
-                  <span class="letter">
-                    ${correctLetters.includes(letter) ? letter : ''}
-                  </span>
+                    <span class="letter">
+                        ${correctLetters.includes(letter) ? letter : ''}
+                    </span>
                 `
             )
             .join('')}
@@ -34,17 +67,15 @@ function displayWord() {
     if (innerWord === selectedWord) {
         finalMessage.innerText = 'Congratulations! You won! 😃';
         popup.style.display = 'flex';
-
         playable = false;
     }
 }
 
-
 function updateWrongLettersEl() {
     wrongLettersEl.innerHTML = `
-${wrongLetters.length > 0 ? '<p>Wrong</p>' : ''}
-${wrongLetters.map(letter => `<span>${letter},</span`)}
-`;
+        ${wrongLetters.length > 0 ? '<p>Wrong</p>' : ''}
+        ${wrongLetters.map(letter => `<span>${letter}</span>`)}
+    `;
 
     figureParts.forEach((part, index) => {
         const errors = wrongLetters.length;
@@ -57,12 +88,10 @@ ${wrongLetters.map(letter => `<span>${letter},</span`)}
     });
 
     if (wrongLetters.length === figureParts.length) {
-        finalMessage.innerText = 'Unfortunately you lost. 😕';
+        finalMessage.innerText = `Unfortunately you lost. 😕 The word was: ${selectedWord}`;
         popup.style.display = 'flex';
-
         playable = false;
     }
-
 }
 
 function showNotification() {
@@ -76,7 +105,7 @@ function showNotification() {
 window.addEventListener('keydown', e => {
     if (playable) {
         if (e.keyCode >= 65 && e.keyCode <= 90) {
-            const letter = e.key;
+            const letter = e.key.toLowerCase();
             if (selectedWord.includes(letter)) {
                 if (!correctLetters.includes(letter)) {
                     correctLetters.push(letter);
@@ -96,19 +125,7 @@ window.addEventListener('keydown', e => {
     }
 });
 
-playAgainBtn.addEventListener('click', () => {
-    playable = true;
-    correctLetters.splice(0);
-    wrongLetters.splice(0);
+playAgainBtn.addEventListener('click', startNewGame);
 
-    selectedWord = words[Math.floor(Math.random() * words.length)];
-    displayWord();
-    updateWrongLettersEl();
-
-    popup.style.display = 'none';
-
-
-})
-
-displayWord();
-
+// Initial game setup
+startNewGame();
